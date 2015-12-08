@@ -1,3 +1,8 @@
+编译libmono.so
+1. sh external/buildscripts/build_runtime_android.sh，
+需要安装: autoconf automake libtool工具
+
+**************
 
 This is Mono.
 
@@ -44,7 +49,7 @@ This is Mono.
 
     b. Building the Software
     ------------------------
-  	
+
 	If you obtained this package as an officially released tarball,
 	this is very simple, use configure and make:
 
@@ -53,7 +58,7 @@ This is Mono.
 		make install
 
 	Mono supports a JIT engine on x86, SPARC, SPARCv9, S/390,
-	S/390x, AMD64, ARM and PowerPC systems.   
+	S/390x, AMD64, ARM and PowerPC systems.
 
 	If you obtained this as a snapshot, you will need an existing
 	Mono installation.  To upgrade your installation, unpack both
@@ -100,7 +105,7 @@ This is Mono.
 	when invoking autogen.sh, like this:
 
 		ACLOCAL_FLAGS="-I $acprefix/share/aclocal" ./autogen.sh --prefix=/usr/loca
-	
+
 	where $acprefix is the prefix where aclocal has been installed.
 
 	This will automatically go into the mcs/ tree and build the
@@ -113,7 +118,7 @@ This is Mono.
 	can say
 
 	  make EXTERNAL_MCS=/foo/bar/mcs EXTERNAL_RUNTIME=/somewhere/else/mono
-	
+
 	If you don't have a working Mono installation
 	---------------------------------------------
 
@@ -147,7 +152,7 @@ This is Mono.
 
 		make check
 
-	All tests should pass.  
+	All tests should pass.
 
 	If you want more extensive tests, including those that test the
 	class libraries, you need to re-run 'configure' with the
@@ -164,21 +169,21 @@ This is Mono.
 
 		make install
 
-	Failure to follow these steps may result in a broken installation. 
+	Failure to follow these steps may result in a broken installation.
 
     d. Common Configuration Options
     -------------------------------
 
 	The following are the configuration options that someone
 	building Mono might want to use:
-	
+
 
 	--with-gc=[boehm, included, sgen, none]
 
 		Selects the garbage collector engine to use, the
 	  	default is the "included" value.
-	
-		included: 
+
+		included:
 			This is the default value, and its
 	  		the most feature complete, it will allow Mono
 		  	to use typed allocations and support the
@@ -198,7 +203,7 @@ This is Mono.
 
 		none:
 			Disables the inclusion of a garbage
-		  	collector.  
+		  	collector.
 
 	--with-tls=__thread,pthread
 
@@ -236,10 +241,10 @@ This is Mono.
 
 		This controls whether `mono' should link against a
 	  	static library (libmono.a) or a shared library
-	  	(libmono.so). 
+	  	(libmono.so).
 
 		This defaults to yes, and will improve the performance
-	  	of the `mono' program. 
+	  	of the `mono' program.
 
 		This only affects the `mono' binary, the shared
 	  	library libmono.so will always be produced for
@@ -300,7 +305,7 @@ This is Mono.
 
 		Or you can specify a path to a libgdiplus.
 
-	--disable-shared-memory 
+	--disable-shared-memory
 
 		Use this option to disable the use of shared memory in
 		Mono (this is equivalent to setting the MONO_DISABLE_SHM
@@ -368,7 +373,7 @@ This is Mono.
 
 		portability:
 			Removes support for MONO_IOMAP, the environment
-			variables for simplifying porting applications that 
+			variables for simplifying porting applications that
 			are case-insensitive and that mix the Unix and Windows path separators.
 
 		profiler:
@@ -384,7 +389,7 @@ This is Mono.
 
 		shadow_copy:
 			Disables support for AppDomain's shadow copies
-			(you can disable this if you do not plan on 
+			(you can disable this if you do not plan on
 			using appdomains).
 
 		simd:
@@ -399,7 +404,7 @@ This is Mono.
 	--enable-big-arrays
 
 		This enables the use arrays whose indexes are larger
-		than Int32.MaxValue.   
+		than Int32.MaxValue.
 
 		By default Mono has the same limitation as .NET on
 		Win32 and Win64 and limits array indexes to 32-bit
@@ -485,7 +490,7 @@ This is Mono.
 			Common code for the JIT and the interpreter.
 
 		io-layer/
-			The I/O layer and system abstraction for 
+			The I/O layer and system abstraction for
 			emulating the .NET IO model.
 
 		cil/
@@ -505,7 +510,7 @@ This is Mono.
 	samples/
 
 		Some simple sample programs on uses of the Mono
-		runtime as an embedded library.   
+		runtime as an embedded library.
 
 	scripts/
 
@@ -522,4 +527,3 @@ This is Mono.
 		independent checkout) from the Mono module, that
 		directory is automatically configured to share the
 		same prefix than this module gets.
-
