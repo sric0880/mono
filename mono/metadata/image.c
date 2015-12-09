@@ -42,6 +42,75 @@
 #include <unistd.h>
 #endif
 
+#include "elf.h"
+#include <sys/mman.h>
+
+unsigned int getKey() __attribute__((section (".log")));
+unsigned int getKey()
+{
+	return 0xdeadbeaf;
+}
+//这里就是.so初始化的时候，这里进行log段的解密工作
+void init_getKey() __attribute__((constructor));
+unsigned long getLibAddr();
+
+//SO---------------加密----------------------
+void init_getKey(){
+  char name[15];
+  unsigned int nblock;
+  unsigned int nsize;
+  unsigned long base;
+  unsigned long text_addr;
+  unsigned int i;
+  Elf32_Ehdr *ehdr;
+  Elf32_Shdr *shdr;
+  
+  base = getLibAddr();
+  
+  ehdr = (Elf32_Ehdr *)base;
+  text_addr = ehdr->e_shoff + base;
+  
+  nblock = ehdr->e_entry >> 16;
+  nsize = ehdr->e_entry & 0xffff;
+ 
+  if(mprotect((void *) base, 4096 * nsize, PROT_READ | PROT_EXEC | PROT_WRITE) != 0){
+  }
+  for( i = 0; i < nblock; i++){
+    char *addr = (char*)(text_addr + i);
+    *addr = (*addr) ^ 0x11;
+  }
+  
+  if(mprotect((void *) base, 4096 * nsize, PROT_READ | PROT_EXEC) != 0){
+  }
+}
+ 
+unsigned long getLibAddr(){
+  unsigned long ret = 0;
+  char name[] = "libmono.so";
+  char buf[4096], *temp;
+  int pid;
+  FILE *fp;
+  pid = getpid();
+  sprintf(buf, "/proc/%d/maps", pid);
+  fp = fopen(buf, "r");
+  if(fp == NULL)
+  {
+    g_message("momo: open failed");
+    goto _error;
+  }
+  while(fgets(buf, sizeof(buf), fp)){
+    if(strstr(buf, name)){
+      temp = strtok(buf, "-");
+      ret = strtoul(temp, NULL, 16);
+      break;
+    }
+  }
+_error:
+  fclose(fp);
+  return ret;
+}
+//SO---------------加密----------------------
+
 #define INVALID_ADDRESS 0xffffffff
 
 /*
@@ -56,6 +125,11 @@ static gboolean debug_assembly_unload = FALSE;
 #define mono_images_unlock() if (mutex_inited) LeaveCriticalSection (&images_mutex)
 static gboolean mutex_inited;
 static CRITICAL_SECTION images_mutex;
+
+/******************** Add by sric0880 ********************/
+#pragma code_seg(".text")
+
+/**********************************************************/
 
 /* returns offset relative to image->raw_data */
 guint32
@@ -1076,15 +1150,31 @@ register_image (MonoImage *image)
 MonoImage *
 mono_image_open_from_data_with_name (char *data, guint32 data_len, gboolean need_copy, MonoImageOpenStatus *status, gboolean refonly, const char *name)
 {
+	unsigned int key;
 	MonoCLIImageInfo *iinfo;
 	MonoImage *image;
 	char *datac;
+	int i;
+	unsigned int * puiData;
 
 	if (!data || !data_len) {
 		if (status)
 			*status = MONO_IMAGE_IMAGE_INVALID;
 		return NULL;
 	}
+
+	/************ Add by sric0880 **************/
+	if (strstr(name, "Assembly-CSharp.dll"))
+	{
+		key = getKey();
+		puiData = (unsigned int *)data;
+		for (i = 0; i < data_len/4; ++i)
+		{
+			puiData[i] ^= key;
+		}
+	}
+	/*********************************************/
+
 	datac = data;
 	if (need_copy) {
 		datac = g_try_malloc (data_len);
