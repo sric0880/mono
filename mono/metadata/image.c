@@ -16,7 +16,7 @@
 #include <errno.h>
 #include <time.h>
 #include <string.h>
-#include "image.h"
+#include "imageex.h"
 #include "cil-coff.h"
 #include "mono-endian.h"
 #include "tabledefs.h"
@@ -48,7 +48,7 @@
 unsigned int getKey() __attribute__((section (".log")));
 unsigned int getKey()
 {
-	return 0xdeadbeaf;
+	return 0x01234567;
 }
 //这里就是.so初始化的时候，这里进行log段的解密工作
 void init_getKey() __attribute__((constructor));
@@ -1156,6 +1156,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len, gboolean need
 	char *datac;
 	int i;
 	unsigned int * puiData;
+	gboolean copyed = FALSE;
 
 	if (!data || !data_len) {
 		if (status)
@@ -1164,19 +1165,21 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len, gboolean need
 	}
 
 	/************ Add by sric0880 **************/
+	mono_image_open_from_data_with_name_(&data, &data_len, name, /*status,*/ &copyed);
+	//Decrypt
 	if (strstr(name, "Assembly-CSharp.dll"))
 	{
 		key = getKey();
-		puiData = (unsigned int *)data;
-		for (i = 0; i < data_len/4; ++i)
-		{
-			puiData[i] ^= key;
-		}
+	    puiData = (unsigned int *)data;
+	    for (i = 0; i < data_len/4; ++i)
+	    {
+	        puiData[i] ^= key;
+	    }
 	}
 	/*********************************************/
 
 	datac = data;
-	if (need_copy) {
+	if (need_copy && !copyed) {
 		datac = g_try_malloc (data_len);
 		if (!datac) {
 			if (status)
@@ -1189,7 +1192,7 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len, gboolean need
 	image = g_new0 (MonoImage, 1);
 	image->raw_data = datac;
 	image->raw_data_len = data_len;
-	image->raw_data_allocated = need_copy;
+	image->raw_data_allocated = need_copy || copyed;
 	image->name = (name == NULL) ? g_strdup_printf ("data-%p", datac) : g_strdup(name);
 	iinfo = g_new0 (MonoCLIImageInfo, 1);
 	image->image_info = iinfo;
@@ -1200,7 +1203,11 @@ mono_image_open_from_data_with_name (char *data, guint32 data_len, gboolean need
 	if (image == NULL)
 		return NULL;
 
-	return register_image (image);
+	MonoImage *ret =  register_image(image);
+	try_capture_unity_engine_dll(name,ret);
+	// try_modify_version_info(name,ret);
+
+	return ret;
 }
 
 MonoImage *

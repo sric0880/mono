@@ -101,6 +101,7 @@ libmonoruntime_la_SOURCES = \
 	icall.c			\
 	icall-def.h		\
 	image.c			\
+	imageex.c 		\
 	loader.c		\
 	locales.c		\
 	locales.h		\
@@ -188,6 +189,7 @@ libmonoruntimeinclude_HEADERS = \
 	environment.h		\
 	exception.h		\
 	image.h			\
+	imageex.h       \
 	loader.h		\
 	mempool.h		\
 	metadata.h		\
